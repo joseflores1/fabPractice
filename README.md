@@ -5,29 +5,30 @@
 [![code style: ruff](assets/badges/ruff.svg)](https://docs.astral.sh/ruff/)
 [![pyarrow](assets/badges/pyarrow.svg)](https://arrow.apache.org/docs/python/)
 
-Synthetic-data foundation: Python 3.14 · uv · pyarrow · pytest · ruff — Parquet extracts now, BigQuery star schema → DQ → BI on the roadmap
+A bank's data engine, rebuilt in public on data that exists only in code — Python 3.14 · uv · pyarrow · Parquet · pytest · ruff
 
 ## Description
 
-End-to-end banking-analytics practice project for a fictional Chilean bank, **Fabellala**, built around its flagship card product, **Tarjeta FBL** (dataset prefix `fbl`). The current phase is a **synthetic data generator**: a Python package that mints realistic-but-fake institutional data — UF currency series, client RUTs, card transactions — and lands it as idempotent, Hive-partitioned Parquet extracts, the raw layer that later analytics layers will consume.
+fabellala-pipeline reconstructs, piece by piece, the reporting backbone of a Chilean bank whose flagship — the **Fabellala** brand and its **Tarjeta FBL** card — exists only in configuration files (every generated artifact carries the `fbl` prefix). Phase 1 is underway: a deterministic generator that mints the bank's frozen raw layer — daily UF series, client RUTs, card movements — and lands each entity as idempotent Hive-partitioned Parquet under `data/raw/`, in exactly the shape a BigQuery load expects downstream.
 
-> fabellala-pipeline involves no real bank, no real clients, and no real personal data. Every row is synthesized in-process from a pinned seed, and every institutional name is invented. The regulatory documents referenced below shape the project's *conventions* only — synthetic data is the point: it is what allows practicing real-bank discipline (RUT validation, fixed-point money, defect reconciliation) without ever touching anyone's data.
+> Nothing on these pages is real: no institution, no clients, no records. **Fabellala** and **Tarjeta FBL** are inventions, and every datum is synthesized in-process from the pinned `SEED` 20260930. The Chilean regulations cited below exist to set *conventions* — they outline what a real bank owes its data stack, which is precisely the discipline this project practices on values that belong to no one.
 
 ## Motivation
 
-Most data-engineering tutorials hand you `df.to_parquet()` and stop there — you never see why partitioning is decided inside the writer, why money must never be a float, or how a data-quality team reconciles recorded defects back to knowable ground truth. fabellala-pipeline is a from-scratch implementation of that discipline:
+The lessons that make banking data trustworthy are exactly the ones tutorials skip: why a monetary column must be exactly round rather than float-fast, how a RUT's check digit actually validates, what it takes for "rewrite yesterday's partition" to be safe, and how a data-quality team reconciles defects it planted on purpose. fabellala-pipeline builds each of those bare, module by module:
 
-- A stdlib-only foundation layer — `config.py` (seed, date anchor, defect rates, compliance tags) and `rut.py` (módulo-11 RUT validation and formatting) — so the regulatory-scary parts are isolated and unit-testable.
-- Registry-driven Parquet writers that refuse silently-lossy input: schemas must match *exactly* (no casts, so a float64 money column is rejected rather than silently rounded), and every write is atomic (temp file → fsync → `os.replace`), making partition rewrites crash-safe and idempotent.
-- A defect ledger: a dedicated QA Parquet file recording every injected synthetic defect, so a later data-quality layer can reconcile its findings against known ground truth instead of chasing phantom bugs.
+- **A compliance chokepoint.** `config.py` is the only surface for constants — the seed, the `END_DATE_ANCHOR` (2026-09-30), the defect rates, the `COMPLIANCE_TAGS` gate — so branding and parameters never hide inside literals.
+- **Chilean identity as a module.** `rut.py` implements módulo 11 end to end — compute, canonical format, parse, validate — and doubles as the seed for fabricating fake clients and, in staging, masking them (Ley 19.628).
+- **Write contracts, not just files.** `writers.py` compares schemas by exact equality, refusing a float64 money column instead of rounding it; partition dates travel in paths, never payloads; every write goes temp-file → fsync → `os.replace`, so re-runs overwrite cleanly and crashes never leave half a file.
+- **Ground truth for planted dirt.** Every injected defect is recorded in a QA ledger keyed by entity and `llave` with its configured rate — so Phase-4 reconciliation scores the DQ layer against evidence, rather than a memory of past adventures.
 
-It is also a portfolio project: every module carries Google-style docstrings, every contract is enforced at the gate, and the test suite redirects all writes to `tmp_path` so no test ever touches the real `data/` tree.
+It is also a portfolio build: Google-style docstrings on every callable, a hermetic test suite whose writes are monkeypatched into `tmp_path`, and `ruff` clean as the standing bar.
 
 ## Quick Start
 
 ### Prerequisites
 
-- [uv](https://docs.astral.sh/uv/) — manages Python 3.14 via `.python-version` and installs it if missing
+- [uv](https://docs.astral.sh/uv/) — it reads `.python-version` and installs CPython 3.14 if missing.
 
 ### First-time setup
 
@@ -35,56 +36,56 @@ It is also a portfolio project: every module carries Google-style docstrings, ev
 uv sync
 ```
 
-That creates `.venv/`, installs dependencies from the committed `uv.lock`, and installs the `fabellala_gen` package in editable mode.
+This creates the `.venv`, materializes the committed `uv.lock`, and installs `fabellala_gen` in editable mode.
 
 ### Usage
 
 ```bash
-uv run pytest -q             # test suite
-uv run ruff check src tests  # lint
+uv run pytest -q             # the test suite
+uv run ruff check src tests  # linting
 ```
 
-There is no CLI entry point yet — `generate_synthetic_data.py` is the next build item, after the per-entity generators.
+No CLI ships yet — `generators.py` and `generate_synthetic_data.py` are the in-progress phase-1 deliverables, followed by `validate_outputs.py`.
 
 ## Roadmap
 
-| Phase | Status | Deliverable |
+| Phase | Status | Scope |
 |---|---|---|
-| 0 · Bootstrap | **done** | uv project, src-layout package, ruff + pytest, hygiene |
-| 1 · Synthetic sources | **in progress** | `config.py`, `rut.py`, `writers.py` done; next: `generators.py`, `generate_synthetic_data.py` |
-| 2 · BigQuery raw | planned | `fbl_raw` dataset; idempotent partition loads of the Parquet extracts |
-| 3 · Staging star schema | planned | fact/summary tables via MERGE; RUT masking per Ley 19.628 |
-| 4 · Data quality | planned | rebalance / traffic-light reconciliation against the defect ledger |
-| 5 · Orchestration | planned | scheduled runs of the full pipeline |
+| 0 · Bootstrap | **done** | uv project, src-layout package, ruff + pytest hygiene |
+| 1 · Synthetic sources | **in progress** | `config.py` / `rut.py` / `writers.py` shipped; `generators.py` and the CLI in flight |
+| 2 · BigQuery raw | planned | `fbl_raw` dataset; per-partition idempotent loads of the extracts |
+| 3 · Staging star schema | planned | fact/summary MERGEs; RUT masking per Ley 19.628 |
+| 4 · Data quality | planned | traffic-light reconciliation against the defect ledger |
+| 5 · Orchestration | planned | scheduled runs of the full chain |
 | 6 · BI | planned | executive dashboards over the mart layer |
 
 ## Data conventions
 
-- **Fixed-point money.** `SALDO_PRECISION = (20, 2)` is the contract; float64 money is refused at the writer, never cast.
-- **Hive partitions.** Extracts land at `data/raw/<entidad>/fecha=YYYY-MM-DD/part-0000.parquet`; the partition date travels in the path, never inside the file. zstd compression, 10 000-row row groups, deterministic Parquet v2.6.
-- **Closed schema registry.** Only entities declared in `EXTRACT_SCHEMAS` (and listed in `COMPLIANCE_TAGS`) can be written; everything else is refused by name.
-- **Reproducibility.** One pinned `SEED` (2026-09-30) and `END_DATE_ANCHOR`; defect injection draws from an offset child stream so defects never perturb the main stream.
-- **Docstrings.** Google style on every function — params, returns, raises — enforced as the house style.
+- **Money is exactly round.** `SALDO_PRECISION (20, 2)` is the wire contract; float64 amounts are refused at the schema gate, never cast.
+- **Dates live in paths, not rows.** Canonical `fecha=YYYY-MM-DD` Hive directories with a fixed `part-0000.parquet` name; zstd compression, 10 000-row row groups and Parquet v2.6 keep re-runs byte-identical.
+- **The registry is closed.** A write requires the entity to be both in `COMPLIANCE_TAGS` and frozen in `EXTRACT_SCHEMAS` — names, types and nullability must match exactly.
+- **Randomness is auditable.** A single `SEED` anchors all streams; defect injection draws from an offset child stream and can never perturb the pristine one.
+- **Docstrings are house style.** Google format — Args, Returns, Raises — on every function, tests included.
 
 ## Regulatory references
 
-The conventions above are shaped by (and cite) the actual Chilean norms:
+The conventions above trace back to actual norms, cited from their official hosts:
 
-- [DFL N° 3, Art. 154 — secreto y reserva bancaria](https://www.bcn.cl/leychile/Navegar?idNorma=83135) — why card/client extracts stay in a controlled raw layer.
-- [Ley N° 19.628 — protección de datos personales](https://www.bcn.cl/leychile/Navegar?idNorma=141599) — why RUT masking is deferred to the staging layer, never the analytical one.
-- [CMF RAN 20-7/1-13 — registro de acciones negociadas](https://www.cmfchile.cl/portal/normativa/624/w4-propertyvalue-49163.html) — reference for registry-driven, schema-frozen extraction design.
-- [Ley N° 18.840, Art. 35 N° 9 — definición de la UF](https://www.leychile.cl/Navegar?idNorma=30216) and the [CMF UF series](https://api.cmfchile.cl/documentacion/UF.html) — what the synthetic `uf_diaria` series stands in for.
+- [DFL N° 3, Art. 154 — secreto y reserva bancaria](https://www.bcn.cl/leychile/Navegar?idNorma=83135) — the reason card/client extracts live in a controlled raw layer and never leave it raw.
+- [Ley N° 19.628 — protección de datos personales](https://www.bcn.cl/leychile/Navegar?idNorma=141599) — the reason RUT masking is deferred to the staging layer rather than the extractor.
+- [CMF RAN 20-7/1-13 — registro de acciones negociadas](https://www.cmfchile.cl/portal/normativa/624/w4-propertyvalue-49163.html) — the reference pattern for registry-driven, schema-frozen extraction contracts.
+- [Ley N° 18.840, Art. 35 N° 9 — definición de la UF](https://www.leychile.cl/Navegar?idNorma=30216) and the [CMF daily UF series](https://api.cmfchile.cl/documentacion/UF.html) — the reality the synthetic `uf_diaria` stand-in imitates.
 
 ## Caveats
 
-- **UF values are synthetic.** The `uf_diaria` series follows the right shape and precision but is generated, not fetched; wiring the CMF UF series is a planned enhancement.
-- **RUT masking is deferred by design.** The generator may inject bad-check-digit RUTs on purpose (tracked in the defect ledger); masking happens in staging, per Ley 19.628.
-- **BigQuery layers are not implemented yet.** The repo currently ends at Parquet extracts; phases 2–6 are design-complete but unbuilt.
-- **No CI yet.** A GitHub Actions pipeline (uv sync → ruff → pytest on push/PR) is on the roadmap.
+- **UF values are invented.** The series has the right precision and cadence but is generated, not fetched; swapping in the CMF feed is a planned enhancement.
+- **Bad RUTs are deliberate.** A rate-controlled batch fails the check digit on purpose, each one noted in the ledger; masking is a staging concern, per Ley 19.628.
+- **The BigQuery layers are design-only.** Phases 2–6 are specified but unbuilt — the executable story today ends at Parquet.
+- **No CI workflow yet.** A GitHub Actions pipeline (uv sync → ruff → pytest on push and PR) remains on the roadmap.
 
 ## Workflow
 
-- **Branch from main:** `feat/<name>`, `fix/<name>`, `docs/<name>`, `test/<name>`, `chore/<name>`.
-- **Conventional (Angular-style) commits:** `type(scope): subject` in imperative mood, with a body explaining *why*; atomic commits — one functionality per commit.
-- **Run everything through uv:** `uv run pytest -q`, `uv run ruff check src tests` must be green before committing.
+- **Branch off main:** `feat/<name>`, `fix/<name>`, `docs/<name>`, `test/<name>`, `chore/<name>`.
+- **Angular-style commits:** `type(scope): subject`, imperative mood, one functionality per commit, a body that says why.
+- **Green before push:** `uv run pytest -q` and `uv run ruff check src tests` must pass on every commit.
 - **Never commit:** `opencode.json`, `data/raw/` outputs, `.venv/`, caches — all gitignored.
