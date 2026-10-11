@@ -101,15 +101,29 @@ def test_rejects_fecha_in_payload(raw_root: Path) -> None:
         )
 
 
+def test_rejects_wrong_columns(raw_root: Path) -> None:
+    """A column set differing from the declared schema is refused by name."""
+    with pytest.raises(ValueError, match="do not match the declared schema columns"):
+        write_extract(
+            pa.table({"valores": pa.array(["20.939,49"])}),
+            "uf_diaria",
+            date(2025, 3, 1),
+        )
+
+
 # ---------------------------------------------------------------------------
 # write_defect_ledger — independent contract 2 of 2: one fixed file per run.
 # Gates: exact schema match against DEFECT_LEDGER_SCHEMA (no entity
 # registry, no partitioning). Tests: roundtrip, determinism, refusals.
 # ---------------------------------------------------------------------------
 
-def test_defect_ledger_roundtrip(ledger_target: Path) -> None:
-    """The ledger is written to DEFECT_LEDGER_PATH and reads back intact."""
-    table = pa.table(
+def _ledger_table() -> pa.Table:
+    """Build the one-row ledger payload the ledger tests share.
+
+    Returns:
+        A pa.Table matching writers.DEFECT_LEDGER_SCHEMA exactly.
+    """
+    return pa.table(
         {
             "entidad": pa.array(["clientes"]),
             "llave": pa.array(["rut=20000517"]),
@@ -119,8 +133,52 @@ def test_defect_ledger_roundtrip(ledger_target: Path) -> None:
             "tasa_configurada": pa.array([0.003]),
         }
     )
-    target = write_defect_ledger(table)
+
+
+def test_defect_ledger_roundtrip(ledger_target: Path) -> None:
+    """The ledger is written to DEFECT_LEDGER_PATH and reads back intact."""
+    target = write_defect_ledger(_ledger_table())
     assert target == ledger_target
     back = pq.read_table(target)
     assert back.column("valor_inyectado").to_pylist() == ["20000517-4"]
     assert back.column("tasa_configurada").to_pylist() == [0.003]
+
+
+def test_ledger_rewrite_is_byte_identical(ledger_target: Path) -> None:
+    """Rewriting the ledger yields byte-identical files."""
+    first = write_defect_ledger(_ledger_table())
+    first_digest = hashlib.sha256(first.read_bytes()).hexdigest()
+    second = write_defect_ledger(_ledger_table())
+    assert first == second
+    assert hashlib.sha256(second.read_bytes()).hexdigest() == first_digest
+
+
+def test_ledger_rejects_wrong_columns(ledger_target: Path) -> None:
+    """A ledger column set differing from DEFECT_LEDGER_SCHEMA is refused."""
+    table = pa.table(
+        {
+            "entidad": pa.array(["clientes"]),
+            "tipo_defecto": pa.array(["bad_dv_rut"]),
+            "valor_original": pa.array(["20000517-1"]),
+            "valor_inyectado": pa.array(["20000517-4"]),
+            "tasa_configurada": pa.array([0.003]),
+        }
+    )  # llave missing
+    with pytest.raises(ValueError, match="do not match the declared columns"):
+        write_defect_ledger(table)
+
+
+def test_ledger_rejects_schema_mismatch(ledger_target: Path) -> None:
+    """Right columns with wrong types are refused, not coerced."""
+    table = pa.table(
+        {
+            "entidad": pa.array(["clientes"]),
+            "llave": pa.array(["rut=20000517"]),
+            "tipo_defecto": pa.array(["bad_dv_rut"]),
+            "valor_original": pa.array(["20000517-1"]),
+            "valor_inyectado": pa.array(["20000517-4"]),
+            "tasa_configurada": pa.array(["0.003"]),
+        }
+    )  # tasa_configurada as string; the contract says float64
+    with pytest.raises(ValueError, match="does not match the declared schema"):
+        write_defect_ledger(table)
