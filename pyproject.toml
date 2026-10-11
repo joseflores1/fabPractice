@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fabellala-pipeline"
+version = "0.1.0"
+description = "Synthetic banking data generator for a fictional Chilean bank (Fabellala / Tarjeta FBL): seeded Parquet extracts, RUT validation, roadmap to BigQuery star schema."
+requires-python = ">=3.14"
+dependencies = [
+    "faker>=40.40.0",
+    "numpy>=2.5.3",
+    "pandas>=3.0.6",
+    "polars>=1.44.2",
+    "pyarrow>=25.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fabellala_gen"]
