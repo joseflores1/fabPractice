@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="106" height="20" role="img" aria-label="Storage engine: pyarrow 25.0.1">
+  <title>Storage engine: pyarrow 25.0.1</title>
+  <linearGradient id="g" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="c"><rect width="106" height="20" rx="3" fill="#fff"/></clipPath>
+  <g clip-path="url(#c)">
+    <rect width="53" height="20" fill="#555"/>
+    <rect x="53" width="53" height="20" fill="#F28C28"/>
+    <rect width="106" height="20" fill="url(#g)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="110" text-rendering="geometricPrecision" transform="scale(.1)">
+    <text x="260" y="150" fill="#010101" fill-opacity=".3" transform="translate(0 1)">pyarrow</text>
+    <text x="260" y="140">pyarrow</text>
+    <text x="790" y="150" fill="#010101" fill-opacity=".3" transform="translate(0 1)">25.0.1</text>
+    <text x="790" y="140">25.0.1</text>
+  </g>
+</svg>

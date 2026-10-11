@@ -1,9 +1,9 @@
-# fabPractice
+# fabellala-pipeline
 
-[![Python 3.14](https://img.shields.io/badge/python-3.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![uv](https://img.shields.io/badge/uv-managed-DE5FE9)](https://docs.astral.sh/uv/)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://docs.astral.sh/ruff/)
-[![pyarrow](https://img.shields.io/badge/pyarrow-25.0.1-F28C28?logo=apache&logoColor=white)](https://arrow.apache.org/docs/python/)
+[![Python 3.14](assets/badges/python.svg)](https://www.python.org/)
+[![uv](assets/badges/uv.svg)](https://docs.astral.sh/uv/)
+[![code style: ruff](assets/badges/ruff.svg)](https://docs.astral.sh/ruff/)
+[![pyarrow](assets/badges/pyarrow.svg)](https://arrow.apache.org/docs/python/)
 
 Synthetic-data foundation: Python 3.14 · uv · pyarrow · pytest · ruff — Parquet extracts now, BigQuery star schema → DQ → BI on the roadmap
 
@@ -11,11 +11,11 @@ Synthetic-data foundation: Python 3.14 · uv · pyarrow · pytest · ruff — Pa
 
 End-to-end banking-analytics practice project for a fictional Chilean bank, **Fabellala**, built around its flagship card product, **Tarjeta FBL** (dataset prefix `fbl`). The current phase is a **synthetic data generator**: a Python package that mints realistic-but-fake institutional data — UF currency series, client RUTs, card transactions — and lands it as idempotent, Hive-partitioned Parquet extracts, the raw layer that later analytics layers will consume.
 
-> fabPractice involves no real bank, no real clients, and no real personal data. Every row is synthesized in-process from a pinned seed, and every institutional name is invented. The regulatory documents referenced below shape the project's *conventions* only — synthetic data is the point: it is what allows practicing real-bank discipline (RUT validation, fixed-point money, defect reconciliation) without ever touching anyone's data.
+> fabellala-pipeline involves no real bank, no real clients, and no real personal data. Every row is synthesized in-process from a pinned seed, and every institutional name is invented. The regulatory documents referenced below shape the project's *conventions* only — synthetic data is the point: it is what allows practicing real-bank discipline (RUT validation, fixed-point money, defect reconciliation) without ever touching anyone's data.
 
 ## Motivation
 
-Most data-engineering tutorials hand you `df.to_parquet()` and stop there — you never see why partitioning is decided inside the writer, why money must never be a float, or how a data-quality team reconciles recorded defects back to knowable ground truth. fabPractice is a from-scratch implementation of that discipline:
+Most data-engineering tutorials hand you `df.to_parquet()` and stop there — you never see why partitioning is decided inside the writer, why money must never be a float, or how a data-quality team reconciles recorded defects back to knowable ground truth. fabellala-pipeline is a from-scratch implementation of that discipline:
 
 - A stdlib-only foundation layer — `config.py` (seed, date anchor, defect rates, compliance tags) and `rut.py` (módulo-11 RUT validation and formatting) — so the regulatory-scary parts are isolated and unit-testable.
 - Registry-driven Parquet writers that refuse silently-lossy input: schemas must match *exactly* (no casts, so a float64 money column is rejected rather than silently rounded), and every write is atomic (temp file → fsync → `os.replace`), making partition rewrites crash-safe and idempotent.

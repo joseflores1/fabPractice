@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="75" height="20" role="img" aria-label="Dependency management: uv">
+  <title>Dependency management: uv</title>
+  <linearGradient id="g" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="c"><rect width="75" height="20" rx="3" fill="#fff"/></clipPath>
+  <g clip-path="url(#c)">
+    <rect width="22" height="20" fill="#555"/>
+    <rect x="22" width="53" height="20" fill="#DE5FE9"/>
+    <rect width="75" height="20" fill="url(#g)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="110" text-rendering="geometricPrecision" transform="scale(.1)">
+    <text x="110" y="150" fill="#010101" fill-opacity=".3" transform="translate(0 1)">uv</text>
+    <text x="110" y="140">uv</text>
+    <text x="480" y="150" fill="#010101" fill-opacity=".3" transform="translate(0 1)">managed</text>
+    <text x="480" y="140">managed</text>
+  </g>
+</svg>
