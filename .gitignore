@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environments and tooling caches
+.venv/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Project-local opencode config (agents, commands, skills)
+.opencode/
+opencode.json
+
+# Generated data artifacts (synthetic Parquet outputs)
+data/raw/
+
+# Secrets and credentials — never commit
+.env
+.env.*
+*.key.json
+service-account*.json
