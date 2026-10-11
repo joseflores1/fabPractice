@@ -1,5 +1,10 @@
 # fabPractice
 
+[![Python 3.14](https://img.shields.io/badge/python-3.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![uv](https://img.shields.io/badge/uv-managed-DE5FE9)](https://docs.astral.sh/uv/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://docs.astral.sh/ruff/)
+[![pyarrow](https://img.shields.io/badge/pyarrow-25.0.1-F28C28?logo=apache&logoColor=white)](https://arrow.apache.org/docs/python/)
+
 Synthetic-data foundation: Python 3.14 · uv · pyarrow · pytest · ruff — Parquet extracts now, BigQuery star schema → DQ → BI on the roadmap
 
 ## Description
@@ -76,15 +81,6 @@ The conventions above are shaped by (and cite) the actual Chilean norms:
 - **RUT masking is deferred by design.** The generator may inject bad-check-digit RUTs on purpose (tracked in the defect ledger); masking happens in staging, per Ley 19.628.
 - **BigQuery layers are not implemented yet.** The repo currently ends at Parquet extracts; phases 2–6 are design-complete but unbuilt.
 - **No CI yet.** A GitHub Actions pipeline (uv sync → ruff → pytest on push/PR) is on the roadmap.
-
-## Contributing
-
-Contributions follow the conventions established in the code — read before touching:
-
-- **Layered package:** `config` (constants) → `rut` / `writers` (primitives) → `generators` (planned) → CLI entry point (planned). Primitives never import upward.
-- **Refuse, don't coerce:** writers reject schema drift and float money instead of "helpfully" casting; tests assert the refusal messages by name.
-- **Tests are hermetic:** monkeypatch `DATA_RAW` / `DEFECT_LEDGER_PATH` onto `tmp_path`; never write outside it.
-- **Docstrings:** Google style on every function, including tests' "why" lines.
 
 ## Workflow
 
