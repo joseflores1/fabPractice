@@ -78,7 +78,7 @@ The conventions above trace back to actual norms, cited from their official host
 
 ## Caveats
 
-- **UF values are invented.** The series has the right precision and cadence but is generated, not fetched; swapping in the CMF feed is a planned enhancement.
+- **UF values are invented.** The series has the right precision and cadence but is generated, not fetched. Two future upgrades are on the table: swapping in the real CMF feed, or — cheaper and fully deterministic — emulating the official period mechanics (one IPC per 10th-to-9th period, daily factor `Rd = (1 + IPC/100)^(1/d) − 1` per Ley 18.840 Art. 35 N° 9), which would add flat and negative periods and the day-10 kink at the cost of strict monotonicity.
 - **Bad RUTs are deliberate.** A rate-controlled batch fails the check digit on purpose, each one noted in the ledger; masking is a staging concern, per Ley 19.628.
 - **The BigQuery layers are design-only.** Phases 2–6 are specified but unbuilt — the executable story today ends at Parquet.
 - **No CI workflow yet.** A GitHub Actions pipeline (uv sync → ruff → pytest on push and PR) remains on the roadmap.
