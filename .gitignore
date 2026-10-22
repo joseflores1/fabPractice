@@ -16,7 +16,7 @@ build/
 opencode.json
 
 # Generated data artifacts (synthetic Parquet outputs)
-data/raw/
+data/
 
 # Secrets and credentials — never commit
 .env
