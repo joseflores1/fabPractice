@@ -105,7 +105,7 @@ N_CONFLICTING_CLIENTES = 3
 # the clean data (clean rows stay byte-identical across regenerations).
 DEFECT_SEED_OFFSET = 1
 
-N_BAD_DV_RUT = 0.003  # digitación manual en sucursal
+BAD_DV_RUT_RATE = 0.003  # digitación manual en sucursal
 CAT_VARIANT_RATE = 0.05  # free-text: "Renta Alta"/"Renca Alta"/"RENTA ALTA"
 SENTINEL_NULL_RATE = 0.01  # "N/A"/"SIN DATO"/"-"/"" cargados como "valor"
 UF_FORMAT_DIRT_RATE = 0.02  # legacy feed: 98% "20.939,49", 2% variantes

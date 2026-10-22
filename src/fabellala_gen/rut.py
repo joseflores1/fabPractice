@@ -2,7 +2,7 @@
 
 Pure, side-effect-free functions with no RNG and no I/O: generators.py uses
 them to mint valid RUTs for synthetic clientes and to inject bad-check-digit
-defects at the N_BAD_DV_RUT rate from config, while validate_outputs.py uses
+defects at the BAD_DV_RUT_RATE rate from config, while validate_outputs.py uses
 is_valid_rut as a non-throwing predicate to detect those injected defects
 deterministically (the checksum is exact ground truth, no fuzzy matching).
 
